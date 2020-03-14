@@ -4,6 +4,7 @@ Intel J1900 Compact Unit
 Debian Buster
 
 ### Hardware Spec
+```markdown
 Architecture:        x86_64
 Address sizes:       36 bits physical, 48 bits virtual
 CPU(s):              4
@@ -60,8 +61,9 @@ enp4s0: flags=4099<UP,BROADCAST,MULTICAST>  mtu 1500
               total        used        free      shared  buff/cache   available
 Mem:        3929408      237764     2477748       21524     1213896     3434344
 Swap:       4080636           0     4080636
-
+```
 ### Software
+```markdown
 Debian Buster NetInst
 PRETTY_NAME="Debian GNU/Linux 10 (buster)"
 NAME="Debian GNU/Linux"
@@ -72,17 +74,34 @@ ID=debian
 HOME_URL="https://www.debian.org/"
 SUPPORT_URL="https://www.debian.org/support"
 BUG_REPORT_URL="https://bugs.debian.org/"
-
+```
 #### WAN1: PPPoE
-Install pppoeconf
+apt-get install pppoeconf
 
 #### WAN2: OpenVPN
 /etc/openvpn/
 
-#### LAN: private IPv4
-/etc/network/interfaces.d/setup
-/etc/dnsmasq.d/setup (dnsmasq)
+systemctl enable/start openvpn
 
+After up, there is tap0
+
+#### LAN: private IPv4
+/etc/network/interfaces.d/setup:
+```markdown
+allow-hotplug enp3s0
+iface enp3s0 inet static
+address 192.168.16.1
+netmask 255.255.255.0
+```
+apt-get install dnsmasq
+
+/etc/dnsmasq.d/setup (dnsmasq)
+```markdown
+interface=enp3s0
+dhcp-range=192.168.16.11,192.168.16.99,2h
+no-resolv
+server=8.8.8.8
+```
 #### LAN: Advanced Routing
 /etc/sysctl.conf: Enable forwarding
 /etc/iproute2/rt_tables
