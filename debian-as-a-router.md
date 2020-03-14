@@ -76,16 +76,26 @@ SUPPORT_URL="https://www.debian.org/support"
 BUG_REPORT_URL="https://bugs.debian.org/"
 ```
 #### WAN1: PPPoE
+The primary WAN
+
 apt-get install pppoeconf
 
+Interface: ppp0
+
 #### WAN2: OpenVPN
+The alternative WAN
+
+apt-get install openvpn
+
 /etc/openvpn/
 
 systemctl enable/start openvpn
 
-After up, there is tap0
+Interface: tap0
 
 #### LAN: private IPv4
+**Static IP Address**
+
 /etc/network/interfaces.d/setup:
 ```markdown
 allow-hotplug enp3s0
@@ -93,9 +103,11 @@ iface enp3s0 inet static
 address 192.168.16.1
 netmask 255.255.255.0
 ```
+**DNSMASQ, the DHCP and DNS Server**
+
 apt-get install dnsmasq
 
-/etc/dnsmasq.d/setup (dnsmasq)
+/etc/dnsmasq.d/setup
 ```markdown
 interface=enp3s0
 dhcp-range=192.168.16.11,192.168.16.99,2h
@@ -103,5 +115,23 @@ no-resolv
 server=8.8.8.8
 ```
 #### LAN: Advanced Routing
-/etc/sysctl.conf: Enable forwarding
+**Enable Forwarding**
+
+/etc/sysctl.conf:
+```markdown
+net.ipv4.ip_forward=1
+net.ipv6.conf.all.forwarding=1
+```
+
+**Carrier IP Segment Handling**
+
+Define routing tables, one for each carrier
+```markdown
 /etc/iproute2/rt_tables
+200     itable1
+210     itable2
+
+25010:  from 192.168.16.0/24 lookup itable1 
+25020:  from 192.168.16.0/24 lookup itable2 
+```
+Traffic from LAN is routed to each carrier WAN based on the matching of its destination in the IP segment database from https://bgp.space/
