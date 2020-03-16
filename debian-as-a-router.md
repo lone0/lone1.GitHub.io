@@ -1,6 +1,7 @@
 ## Soft Router
 
 Intel J1900 Compact Unit
+
 Debian Buster
 
 ### Hardware Spec
@@ -78,9 +79,36 @@ BUG_REPORT_URL="https://bugs.debian.org/"
 #### WAN1: PPPoE
 The primary WAN
 
-apt-get install pppoeconf
+apt-get install pppoeconf && pppoeconf
 
-Interface: ppp0
+Select the correct NIC and follow the guidance, a new interface "dsl-provider" is created in the following files:
+
+/etc/network/interfaces:
+
+```markdown
+auto dsl-provider
+iface dsl-provider inet ppp
+pre-up /bin/ip link set enp1s0 up # line maintained by pppoeconf
+provider dsl-provider
+post-up /my/routing-script.sh # user defined routes
+pre-up /bin/ip link set enp2s0 up
+```
+
+/etc/ppp/peers/dsl-provider
+
+The Linux interface name: ppp0
+
+##### IPv6
+/etc/ppp/options:
+```markdown
++ipv6 ipv6cp-use-ipaddr
+```
+/etc/sysctl.conf
+```markdown
+net.ipv6.conf.ppp0.accept_ra=2
+```
+Add these lines to enable IPv6 acquisition
+
 
 #### WAN2: OpenVPN
 The alternative WAN
@@ -94,7 +122,7 @@ systemctl enable/start openvpn
 Interface: tap0
 
 #### LAN: private IPv4
-**Static IP Address**
+#####Static IP Address
 
 /etc/network/interfaces.d/setup:
 ```markdown
@@ -103,7 +131,7 @@ iface enp3s0 inet static
 address 192.168.16.1
 netmask 255.255.255.0
 ```
-**DNSMASQ, the DHCP and DNS Server**
+#####DNSMASQ, the DHCP and DNS Server**
 
 apt-get install dnsmasq
 
