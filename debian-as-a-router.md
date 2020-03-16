@@ -122,7 +122,7 @@ systemctl enable/start openvpn
 Interface: tap0
 
 #### LAN: private IPv4
-#####Static IP Address
+##### Static IP Address
 
 /etc/network/interfaces.d/setup:
 ```markdown
@@ -131,7 +131,7 @@ iface enp3s0 inet static
 address 192.168.16.1
 netmask 255.255.255.0
 ```
-#####DNSMASQ, the DHCP and DNS Server**
+##### DNSMASQ, the DHCP and DNS Server
 
 apt-get install dnsmasq
 
@@ -143,7 +143,7 @@ no-resolv
 server=8.8.8.8
 ```
 #### LAN: Advanced Routing
-**Enable Forwarding**
+##### Enable Forwarding
 
 /etc/sysctl.conf:
 ```markdown
@@ -151,7 +151,7 @@ net.ipv4.ip_forward=1
 net.ipv6.conf.all.forwarding=1
 ```
 
-**Carrier IP Segment Handling**
+##### Carrier IP Segment Handling
 
 Define routing tables, one for each carrier
 ```markdown
