@@ -79,6 +79,8 @@ BUG_REPORT_URL="https://bugs.debian.org/"
 #### WAN1: PPPoE
 The primary WAN
 
+Physical interface: enp1s0; PPP interface: ppp0
+
 apt-get install pppoeconf && pppoeconf
 
 Select the correct NIC and follow the guidance, a new interface "dsl-provider" is created in the following files:
@@ -99,6 +101,8 @@ pre-up /bin/ip link set enp2s0 up
 The Linux interface name: ppp0
 
 ##### IPv6
+IPv6 address acquisition:
+
 /etc/ppp/options:
 ```markdown
 +ipv6 ipv6cp-use-ipaddr
@@ -107,7 +111,38 @@ The Linux interface name: ppp0
 ```markdown
 net.ipv6.conf.ppp0.accept_ra=2
 ```
-Add these lines to enable IPv6 acquisition
+
+Prefix Delegation: PD to be acquired from ppp0, and to be assigned to the LAN interface: enp2s0
+```markdown
+apt-get install wide-dhcpv6-client
+# cat /etc/wide-dhcpv6/dhcp6c.conf 
+# Default dhpc6c configuration: it assumes the address is autoconfigured using
+# router advertisements.
+
+profile default
+{
+  information-only;
+
+  request domain-name-servers;
+  request domain-name;
+
+  script "/etc/wide-dhcpv6/dhcp6c-script";
+};
+
+interface ppp0 {
+    # Request Prefix Delegation on ppp0, and give the received prefix id 0
+    send ia-pd 0;
+};
+
+# Use subnets from the prefix with id 0
+id-assoc pd 0 {
+    prefix-interface enp2s0 {
+        # Assign subnet 1 to eth0
+        sla-len 4; # match the assigned prefix length, in this configuration it's 60.
+        sla-id 1;
+    };
+};
+```
 
 
 #### WAN2: OpenVPN
@@ -121,8 +156,9 @@ systemctl enable/start openvpn
 
 Interface: tap0
 
-#### LAN: private IPv4
-##### Static IP Address
+#### LAN: IP Address
+Interface: enp2s0
+##### Static IPv4 Address
 
 /etc/network/interfaces.d/setup:
 ```markdown
@@ -142,6 +178,18 @@ dhcp-range=192.168.16.11,192.168.16.99,2h
 no-resolv
 server=8.8.8.8
 ```
+
+##### IPv6
+Global IPv6 address has been assigned by wide-dhcpv6-client in the above steps.
+
+RA enabled on LAN side by this line in /etc/dnsmasq.d/setup
+```markdown
+dhcp-range=::,constructor:enp2s0,ra-stateless
+
+# enable IPv6 Route Advertisements
+enable-ra
+```
+
 #### LAN: Advanced Routing
 ##### Enable Forwarding
 
